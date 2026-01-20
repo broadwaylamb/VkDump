@@ -102,6 +102,9 @@ def download_audio_list(directory, owner_id, session: VkOfficialClientSession):
     print(f'Downloading mp3s into directory {mp3dir}')
     for i, audio in enumerate(response):
         print(f'Downloading {i + 1} out of {len(response)}...')
+        if (mp3dir / f'audio{ audio['owner_id']}_{audio['id']}.mp3').exists():
+            print('Already downloaded, skipping')
+            continue
         try:
             download_mp3_from_m3u8(mp3dir, audio['owner_id'], audio['id'], audio['url'], audio['artist'], audio['title'])
         except Exception as e:
