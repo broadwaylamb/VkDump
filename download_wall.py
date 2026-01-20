@@ -5,6 +5,7 @@ from vk_api import VkTools
 
 from auth import VkOfficialClientSession
 from auth import log_in_with_official_client
+from download_profile import PROFILE_FIELDS
 
 def get_all_comments(owner_id, post_id, session: VkOfficialClientSession, tools: VkTools):
     comments = tools.get_all(
@@ -18,7 +19,7 @@ def get_all_comments(owner_id, post_id, session: VkOfficialClientSession, tools:
 def download_wall(directory, user_id, session: VkOfficialClientSession):
     api = session.api()
     tools = VkTools(api)
-    response = tools.get_all('wall.get', 100, {'owner_id': user_id})['items']
+    response = tools.get_all('wall.get', 100, {'owner_id': user_id, 'extended': 1, 'fields': PROFILE_FIELDS})['items']
     print(f'Downloading the wall for {user_id}...')
 
     for post in response:
@@ -36,7 +37,7 @@ def download_wall(directory, user_id, session: VkOfficialClientSession):
             all_comments = tools.get_all(
                 'wall.getComments',
                 max_count=100,
-                values={'owner_id': user_id, 'post_id': post['id'], 'need_likes': 1, 'sort': 'asc', 'preview_length': 0}
+                values={'owner_id': user_id, 'post_id': post['id'], 'need_likes': 1, 'sort': 'asc', 'preview_length': 0, 'extended': 1, 'fields': PROFILE_FIELDS}
             )['items']
             post['activity']['comments'] = all_comments
 

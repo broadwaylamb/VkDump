@@ -7,7 +7,6 @@ from vk_api import VkTools, tools, VkToolsException
 from auth import log_in_with_official_client, VkOfficialClientSession
 import m3u8_converter
 
-
 def download_mp3_from_m3u8(directory, owner_id, audio_id, m3u8_url, artist, title):
     mp3_path = PurePath(directory) / f'audio{owner_id}_{audio_id}.mp3'
     print(f'Downloading \'{artist} - {title}\' to {mp3_path}')
@@ -19,6 +18,8 @@ def download_mp3_from_m3u8(directory, owner_id, audio_id, m3u8_url, artist, titl
     audio['title'] = title
     audio.save()
 
+def download_audio(directory, audio):
+    download_mp3_from_m3u8(directory, audio['owner_id'], audio['id'], audio['url'], audio['artist'], audio['title'])
 
 def download_mp3(directory, audio_owner, audio_id, session: VkOfficialClientSession):
     """
@@ -106,7 +107,7 @@ def download_audio_list(directory, owner_id, session: VkOfficialClientSession):
             print('Already downloaded, skipping')
             continue
         try:
-            download_mp3_from_m3u8(mp3dir, audio['owner_id'], audio['id'], audio['url'], audio['artist'], audio['title'])
+            download_audio(mp3dir, audio)
         except Exception as e:
             print(f'Could not download track {i + 1} "{audio['artist']} - {audio['title']}"')
             continue
