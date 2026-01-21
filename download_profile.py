@@ -41,6 +41,7 @@ PROFILE_FIELDS = ('about,'
                   'nickname,'
                   'occupation,'
                   'personal,'
+                  'photo_id',
                   'photo_400_orig,'
                   'photo_max_orig,'
                   'quotes,'

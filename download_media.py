@@ -1,25 +1,9 @@
-import urllib.request
 from pathlib import Path
 from traceback import print_exc
 
 from auth import VkOfficialClientSession
 from download_audio import download_audio
-
-
-def download_thing(directory, attachment_type, owner_id, object_id, url, extension):
-    directory = Path(directory) / attachment_type / f'{attachment_type}{owner_id}'
-    directory.mkdir(parents=True, exist_ok=True)
-    filename = f'{attachment_type}{owner_id}_{object_id}.{extension}'
-    dest = directory / filename
-    print(f'Downloading {filename}')
-    if dest.exists():
-        print("Already downloaded, skipping")
-        return
-    try:
-        urllib.request.urlretrieve(url, directory / filename)
-    except:
-        print(f"Could not download")
-        print_exc()
+from download_thing import download_thing
 
 def download_photo(directory, photo):
     urls = {}
@@ -86,7 +70,10 @@ def download_media_attachment(directory, attachment, session: VkOfficialClientSe
         object_id = graffiti['id']
         extension = 'png'
     elif attachment['type'] == 'album':
-        return # TODO
+        album = attachment['album']
+        print(f'Downloading attached photo album {album['title']}')
+        download_photo_album(directory, album['owner_id'], album['id'], session)
+        return
     elif attachment['type'] == 'sticker':
         sticker = attachment['sticker']
         images = sticker['images'].sort(reverse=True, key=lambda x: x['width'])
