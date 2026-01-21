@@ -1,5 +1,6 @@
 import json
 from pathlib import PurePath, Path
+from traceback import print_exc
 
 from mutagen.easyid3 import EasyID3
 from vk_api import VkTools, tools, VkToolsException
@@ -10,6 +11,9 @@ import m3u8_converter
 def download_mp3_from_m3u8(directory, owner_id, audio_id, m3u8_url, artist, title):
     mp3_path = PurePath(directory) / f'audio{owner_id}_{audio_id}.mp3'
     print(f'Downloading \'{artist} - {title}\' to {mp3_path}')
+    if not m3u8_url:
+        print('Audio url is empty, skipping')
+        return
     m3u8_converter.m3u8_to_mp3_advanced(mp3_path, m3u8_url, sleep_ms=1000)
 
     # Set the mp3 metadata
@@ -19,7 +23,16 @@ def download_mp3_from_m3u8(directory, owner_id, audio_id, m3u8_url, artist, titl
     audio.save()
 
 def download_audio(directory, audio):
-    download_mp3_from_m3u8(directory, audio['owner_id'], audio['id'], audio['url'], audio['artist'], audio['title'])
+    directory = directory / 'audio' / f'audio{audio["owner_id"]}'
+    directory.mkdir(parents=True, exist_ok=True)
+    if (directory / f'audio{audio['owner_id']}_{audio['id']}.mp3').exists():
+        print('Already downloaded, skipping')
+        return
+    try:
+        download_mp3_from_m3u8(directory, audio['owner_id'], audio['id'], audio['url'], audio['artist'], audio['title'])
+    except:
+        print(f'Could not download audio "{audio['artist']} - {audio['title']}"')
+        print_exc()
 
 def download_mp3(directory, audio_owner, audio_id, session: VkOfficialClientSession):
     """
@@ -103,14 +116,7 @@ def download_audio_list(directory, owner_id, session: VkOfficialClientSession):
     print(f'Downloading mp3s into directory {mp3dir}')
     for i, audio in enumerate(response):
         print(f'Downloading {i + 1} out of {len(response)}...')
-        if (mp3dir / f'audio{ audio['owner_id']}_{audio['id']}.mp3').exists():
-            print('Already downloaded, skipping')
-            continue
-        try:
-            download_audio(mp3dir, audio)
-        except Exception as e:
-            print(f'Could not download track {i + 1} "{audio['artist']} - {audio['title']}"')
-            continue
+        download_audio(mp3dir, audio)
 
 if __name__ == '__main__':
     session = log_in_with_official_client()

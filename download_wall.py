@@ -1,14 +1,13 @@
 import json
 import ssl
-from http.client import responses
 from pathlib import Path
 from traceback import print_exc
 
 from vk_api import VkTools, ApiHttpError
 
-import download_media
 from auth import VkOfficialClientSession
 from auth import log_in_with_official_client
+from download_media import download_media_attachment
 from download_profile import PROFILE_FIELDS
 
 
@@ -71,12 +70,12 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession):
         if 'attachments' in post:
             print(f'Downloading attachments for post {post["id"]}...')
             for attachment in post['attachments']:
-                download_media.download_media_attachment(directory, attachment, session)
+                download_media_attachment(directory, attachment, session)
         if 'copy_history' in post:
             for repost in post['copy_history']:
                 if 'attachments' in repost:
                     for attachment in repost['attachments']:
-                        download_media.download_media_attachment(directory, attachment, session)
+                        download_media_attachment(directory, attachment, session)
 
 if __name__ == '__main__':
     ssl._create_default_https_context = ssl._create_unverified_context

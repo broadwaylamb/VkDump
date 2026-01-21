@@ -3,28 +3,9 @@ from traceback import print_exc
 
 from auth import VkOfficialClientSession
 from download_audio import download_audio
+from download_photo import download_photo_album, download_photo
 from download_thing import download_thing
 
-def download_photo(directory, photo):
-    urls = {}
-    for size in photo['sizes']:
-        urls[size['type']] = size['url']
-
-    if 'w' in urls:
-        url = urls['w']
-    elif 'z' in urls:
-        url = urls['z']
-    elif 'y' in urls:
-        url = urls['y']
-    elif 'x' in urls:
-        url = urls['x']
-    elif 'm' in urls:
-        url = urls['m']
-    elif 's' in urls:
-        url = urls['s']
-    else:
-        return
-    download_thing(directory, 'photo', photo['owner_id'], photo['id'], url, 'jpg')
 
 def download_media_attachment(directory, attachment, session: VkOfficialClientSession):
     directory = Path(directory)
@@ -42,13 +23,7 @@ def download_media_attachment(directory, attachment, session: VkOfficialClientSe
     elif attachment['type'] == 'audio':
         audio = attachment['audio']
         print(f'Downloading audio attachment "{audio['artist']} - {audio['title']}"')
-        directory = directory / 'audio' / f'audio{audio["owner_id"]}'
-        directory.mkdir(parents=True, exist_ok=True)
-        try:
-            download_audio(directory, audio)
-        except:
-            print(f"Could not download audio")
-            print_exc()
+        download_audio(directory, audio)
         return
     elif attachment['type'] == 'document':
         document = attachment['document']

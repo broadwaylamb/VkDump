@@ -5,7 +5,29 @@ from pathlib import Path
 from vk_api import VkTools
 
 from auth import VkOfficialClientSession, log_in_with_official_client
-from download_media import download_photo
+from download_thing import download_thing
+
+
+def download_photo(directory, photo):
+    urls = {}
+    for size in photo['sizes']:
+        urls[size['type']] = size['url']
+
+    if 'w' in urls:
+        url = urls['w']
+    elif 'z' in urls:
+        url = urls['z']
+    elif 'y' in urls:
+        url = urls['y']
+    elif 'x' in urls:
+        url = urls['x']
+    elif 'm' in urls:
+        url = urls['m']
+    elif 's' in urls:
+        url = urls['s']
+    else:
+        return
+    download_thing(directory, 'photo', photo['owner_id'], photo['id'], url, 'jpg')
 
 def download_photo_album(directory, owner_id, album_id, session: VkOfficialClientSession):
     directory = Path(directory)
@@ -37,6 +59,7 @@ def download_all_albums(directory, owner_id, session: VkOfficialClientSession):
     for album in response:
         print(f'Downloading photos in album {album['title']}')
         download_photo_album(directory, album['owner_id'], album['id'], session)
+
 
 if __name__ == '__main__':
     ssl._create_default_https_context = ssl._create_unverified_context
