@@ -1,5 +1,4 @@
 from pathlib import Path
-from traceback import print_exc
 
 from auth import VkOfficialClientSession
 from download_audio import download_audio
@@ -51,10 +50,10 @@ def download_media_attachment(directory, attachment, session: VkOfficialClientSe
         return
     elif attachment['type'] == 'sticker':
         sticker = attachment['sticker']
-        images = sticker['images'].sort(reverse=True, key=lambda x: x['width'])
-        if len(images) == 0:
+        if len(sticker['images']) == 0:
             return
-        url = images[0]['url']
+        image = max(sticker['images'], key=lambda x: x['width'])
+        url = image['url']
         owner_id = sticker['product_id']
         object_id = sticker['sticker_id']
         extension = 'png'
