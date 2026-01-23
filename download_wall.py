@@ -242,7 +242,8 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
             if 'photo_id' not in profile:
                 download_thing(directory, 'avatar', profile['id'], None, url, 'jpg')
             else:
-                download_thing(directory, 'photo', profile['id'], profile['photo_id'], url, 'jpg')
+                (photo_owner_id, photo_id) = profile['photo_id'].split('_')
+                download_thing(directory, 'photo', photo_owner_id, photo_id, url, 'jpg')
 
 
     print('Downloading groups\' avatars...' )
