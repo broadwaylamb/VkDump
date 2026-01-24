@@ -163,20 +163,24 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
                     continue
 
                 print(f'Downloading comments for post {owner_id}_{post["id"]}...')
-                post['comments']['list'] = tools.get_all(
-                    method='wall.getComments',
-                    max_count=100,
-                    values={
-                        'owner_id': owner_id,
-                        'post_id': post['id'],
-                        'need_likes': 1,
-                        'sort': 'asc',
-                        'preview_length': 0,
-                        'extended': 1,
-                        'fields': PROFILE_FIELDS,
-                    },
-                    profile_cache=profile_cache,
-                )['items']
+                try:
+                    post['comments']['list'] = tools.get_all(
+                        method='wall.getComments',
+                        max_count=100,
+                        values={
+                            'owner_id': owner_id,
+                            'post_id': post['id'],
+                            'need_likes': 1,
+                            'sort': 'asc',
+                            'preview_length': 0,
+                            'extended': 1,
+                            'fields': PROFILE_FIELDS,
+                        },
+                        profile_cache=profile_cache,
+                    )['items']
+                except VkToolsException:
+                    print(f'Could not download comments for post {post["id"]}...')
+                    continue
             comments_json_path.write_text(json.dumps(response, indent=4, ensure_ascii=False))
             profile_cache.save()
 
@@ -271,7 +275,7 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
 def main():
     ssl._create_default_https_context = ssl._create_unverified_context
     session = log_in_with_official_client()
-    user_id = input('User ID: ').strip()
+    user_id = input('Owner ID: ').strip()
     with_likes = input('With likes and reposts? (type anything, empty string means no) ').strip() != ""
     download_wall('.', user_id, session, with_likes)
 

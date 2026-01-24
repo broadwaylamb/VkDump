@@ -24,8 +24,8 @@ def download_media_attachment(directory, attachment, session: VkOfficialClientSe
         print(f'Downloading audio attachment "{audio['artist']} - {audio['title']}"')
         download_audio(directory, audio)
         return
-    elif attachment['type'] == 'document':
-        document = attachment['document']
+    elif attachment['type'] == 'doc':
+        document = attachment['doc']
         url = document['url']
         owner_id = document['owner_id']
         object_id = document['id']
