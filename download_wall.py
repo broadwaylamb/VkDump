@@ -87,7 +87,7 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
             try:
                 response = tools.get_all(
                     method='wall.get',
-                    max_count=30,
+                    max_count=50,
                     values={
                         'owner_id': owner_id,
                         'extended': 1,
@@ -275,9 +275,10 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
 def main():
     ssl._create_default_https_context = ssl._create_unverified_context
     session = log_in_with_official_client()
-    user_id = input('Owner ID: ').strip()
+    user_ids = [user_id.strip() for user_id in input('Owner IDs (space-separated): ').split()]
     with_likes = input('With likes and reposts? (type anything, empty string means no) ').strip() != ""
-    download_wall('.', user_id, session, with_likes)
+    for user_id in user_ids:
+        download_wall('.', user_id, session, with_likes)
 
 if __name__ == '__main__':
     main()
