@@ -1,4 +1,5 @@
 import json
+import os
 import ssl
 from pathlib import Path
 from traceback import print_exc
@@ -87,7 +88,7 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
             try:
                 response = tools.get_all(
                     method='wall.get',
-                    max_count=50,
+                    max_count=30,
                     values={
                         'owner_id': owner_id,
                         'extended': 1,
@@ -117,7 +118,7 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
                 if 'hash' in post:
                     del post['hash']
 
-            posts_json_path.write_text(json.dumps(response, indent=4, ensure_ascii=False))
+            posts_json_path.write_text(json.dumps(response, indent='\t', ensure_ascii=False))
             profile_cache.save()
             print(f'Downloaded posts for {owner_id}.')
 
@@ -133,7 +134,7 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
                     print(f'Downloading likes for post {post['id']}...')
                     post['likes']['list'] = get_likes(tools, owner_id, 'post', post['id'], profile_cache)
                 print('Downloaded likes.')
-                likes_json_path.write_text(json.dumps(response, indent=4, ensure_ascii=False))
+                likes_json_path.write_text(json.dumps(response, indent='\t', ensure_ascii=False))
                 profile_cache.save()
 
             if reposts_json_path.exists():
@@ -149,7 +150,7 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
                         post['reposts']['list'] = get_reposts(tools, owner_id, post['id'], profile_cache)
                     except VkToolsException:
                         print(f'Could not download reposts for post {post['id']}')
-                reposts_json_path.write_text(json.dumps(response, indent=4, ensure_ascii=False))
+                reposts_json_path.write_text(json.dumps(response, indent='\t', ensure_ascii=False))
                 profile_cache.save()
 
         if comments_json_path.exists():
@@ -181,7 +182,7 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
                 except VkToolsException:
                     print(f'Could not download comments for post {post["id"]}...')
                     continue
-            comments_json_path.write_text(json.dumps(response, indent=4, ensure_ascii=False))
+            comments_json_path.write_text(json.dumps(response, indent='\t', ensure_ascii=False))
             profile_cache.save()
 
         if with_likes:
@@ -198,10 +199,10 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
                             continue
                         print(f'Downloading likes for comment {comment['id']}...')
                         comment['likes']['list'] = get_likes(tools, owner_id, 'comment', comment['id'], profile_cache)
-                comments_likes_json_path.write_text(json.dumps(response, indent=4, ensure_ascii=False))
+                comments_likes_json_path.write_text(json.dumps(response, indent='\t', ensure_ascii=False))
                 profile_cache.save()
 
-        full_json_path.write_text(json.dumps(response, indent=4, ensure_ascii=False))
+        full_json_path.write_text(json.dumps(response, indent='\t', ensure_ascii=False))
         comments_likes_json_path.unlink(missing_ok=True)
         comments_json_path.unlink(missing_ok=True)
         reposts_json_path.unlink(missing_ok=True)
@@ -233,7 +234,7 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
                     download_media_attachment(directory, attachment, session)
 
     print('Downloading users\' avatars...' )
-    for profile in response['profiles']:
+    for profile in profile_cache.profiles:
         if 'crop_photo' in profile and 'photo' in profile['crop_photo']:
             download_photo(directory, profile['crop_photo']['photo'])
             continue
@@ -251,7 +252,7 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
 
 
     print('Downloading groups\' avatars...' )
-    for group in response['groups']:
+    for group in profile_cache.groups:
         if 'crop_photo' in group and 'photo' in group['crop_photo']:
             download_photo(directory, group['crop_photo']['photo'])
             continue

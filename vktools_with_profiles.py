@@ -110,6 +110,6 @@ class VkToolsWithProfiles(VkTools):
 
         return {
             key: items,
-            'profiles': profile_cache.profiles if profile_cache is not None else [],
-            'groups': profile_cache.groups if profile_cache is not None else [],
+            'profiles': response['profiles'],
+            'groups': response['groups'],
         }
