@@ -19,8 +19,8 @@ class ProfileCache:
                 self.groups = json.load(f)
 
     def save(self):
-        self.profiles_path.write_text(json.dumps(self.profiles, indent=4, ensure_ascii=False))
-        self.groups_path.write_text(json.dumps(self.groups, indent=4, ensure_ascii=False))
+        self.profiles_path.write_text(json.dumps(self.profiles, indent='\t', ensure_ascii=False))
+        self.groups_path.write_text(json.dumps(self.groups, indent='\t', ensure_ascii=False))
 
     def cache_profile(self, profile):
         if profile['id'] not in self.seen_profiles:
