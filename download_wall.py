@@ -8,41 +8,11 @@ from vk_api import VkTools, ApiHttpError, VkToolsException
 from auth import VkOfficialClientSession
 from auth import log_in_with_official_client
 from download_media import download_media_attachment
-from download_photo import download_photo
-from download_profile import PROFILE_FIELDS
-from download_thing import download_thing
+from utils import PROFILE_FIELDS
+from likes import get_likes
 from profile_cache import ProfileCache
 from vktools_with_profiles import VkToolsWithProfiles
 
-
-def get_likes(tools: VkTools, owner_id, item_type, item_id, profile_cache: ProfileCache):
-    likers = tools.get_all(
-        method='likes.getList',
-        max_count=100,
-        values={
-            'type': item_type,
-            'owner_id': owner_id,
-            'item_id': item_id,
-            'extended': 1,
-            'fields': PROFILE_FIELDS,
-        },
-    )
-
-    liked_ids = []
-    for liker in likers['items']:
-        if liker['type'] == 'profile':
-            del liker['type']
-            liked_ids.append(liker['id'])
-            profile_cache.cache_profile(liker)
-        elif liker['type'] == 'group':
-            del liker['type']
-            liked_ids.append(-abs(liker['id']))
-            liker['id'] = abs(liker['id'])
-            profile_cache.cache_group(liker)
-        else:
-            continue
-
-    return liked_ids
 
 def get_reposts(tools: VkTools, owner_id, post_id, profile_cache: ProfileCache):
     reposts = tools.get_all(
@@ -215,12 +185,12 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
         if 'attachments' in post:
             print(f'Downloading attachments for post {post["id"]}...')
             for attachment in post['attachments']:
-                download_media_attachment(directory, attachment, session)
+                download_media_attachment(directory, attachment, session, profile_cache)
         if 'copy_history' in post:
             for repost in post['copy_history']:
                 if 'attachments' in repost:
                     for attachment in repost['attachments']:
-                        download_media_attachment(directory, attachment, session)
+                        download_media_attachment(directory, attachment, session, profile_cache)
 
         comments = []
         if 'list' in post['comments']:
@@ -232,7 +202,7 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
             if 'attachments' in comment:
                 print(f'Downloading attachments for comment {comment["id"]}...')
                 for attachment in comment['attachments']:
-                    download_media_attachment(directory, attachment, session)
+                    download_media_attachment(directory, attachment, session, profile_cache)
 
     profile_cache.download_avatars()
 

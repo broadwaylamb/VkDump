@@ -1,8 +1,7 @@
 import json
 from pathlib import Path
 
-from download_photo import download_photo
-from download_thing import download_thing
+from download_thing import download_thing, download_photo
 
 
 class ProfileCache:

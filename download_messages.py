@@ -4,7 +4,7 @@ from pathlib import Path
 
 from download_media import download_media_attachment
 from auth import log_in_with_official_client, VkOfficialClientSession
-from download_profile import PROFILE_FIELDS
+from utils import PROFILE_FIELDS
 from download_thing import download_thing
 from profile_cache import ProfileCache
 from vktools_with_profiles import VkToolsWithProfiles
@@ -54,7 +54,7 @@ def download_chat(directory, conversation, tools: VkToolsWithProfiles, session: 
     for message in response['items']:
         if 'attachments' in message:
             for attachment in message['attachments']:
-                download_media_attachment(directory, attachment, session)
+                download_media_attachment(directory, attachment, session, profile_cache)
 
 def download_messages(directory, session: VkOfficialClientSession):
     directory = Path(directory)

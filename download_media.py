@@ -2,11 +2,12 @@ from pathlib import Path
 
 from auth import VkOfficialClientSession
 from download_audio import download_audio
-from download_photo import download_photo_album, download_photo
-from download_thing import download_thing
+from download_photo import download_photo_album
+from download_thing import download_thing, download_photo
+from profile_cache import ProfileCache
 
 
-def download_media_attachment(directory, attachment, session: VkOfficialClientSession):
+def download_media_attachment(directory, attachment, session: VkOfficialClientSession, profile_cache: ProfileCache=None):
     directory = Path(directory)
     if attachment['type'] == 'photo':
         download_photo(directory, attachment['photo'])
@@ -46,7 +47,7 @@ def download_media_attachment(directory, attachment, session: VkOfficialClientSe
     elif attachment['type'] == 'album':
         album = attachment['album']
         print(f'Downloading attached photo album {album['title']}')
-        download_photo_album(directory, album['owner_id'], album['id'], session)
+        download_photo_album(directory, album['owner_id'], album['id'], session, profile_cache)
         return
     elif attachment['type'] == 'sticker':
         sticker = attachment['sticker']
@@ -61,7 +62,7 @@ def download_media_attachment(directory, attachment, session: VkOfficialClientSe
         if 'attachments' in attachment:
             print(f'Downloading attachments for post {attachment["id"]}...')
             for attachment in attachment['attachments']:
-                download_media_attachment(directory, attachment, session)
+                download_media_attachment(directory, attachment, session, profile_cache)
         return
     else:
         return
