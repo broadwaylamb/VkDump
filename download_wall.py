@@ -1,5 +1,4 @@
 import json
-import os
 import ssl
 from pathlib import Path
 from traceback import print_exc
@@ -88,7 +87,7 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
             try:
                 response = tools.get_all(
                     method='wall.get',
-                    max_count=30,
+                    max_count=10,
                     values={
                         'owner_id': owner_id,
                         'extended': 1,
@@ -117,6 +116,8 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
                     del post['marked_as_ads']
                 if 'hash' in post:
                     del post['hash']
+                if 'ads_easy_promote' in post:
+                    del post['ads_easy_promote']
 
             posts_json_path.write_text(json.dumps(response, indent='\t', ensure_ascii=False))
             profile_cache.save()
@@ -233,45 +234,7 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
                 for attachment in comment['attachments']:
                     download_media_attachment(directory, attachment, session)
 
-    print('Downloading users\' avatars...' )
-    for profile in profile_cache.profiles:
-        if 'crop_photo' in profile and 'photo' in profile['crop_photo']:
-            download_photo(directory, profile['crop_photo']['photo'])
-            continue
-
-        if 'deactivated' in profile or not profile['has_photo']:
-            continue
-
-        if 'photo_max_orig' in profile:
-            url = profile['photo_max_orig']
-            if 'photo_id' not in profile:
-                download_thing(directory, 'avatar', profile['id'], None, url, 'jpg')
-            else:
-                (photo_owner_id, photo_id) = profile['photo_id'].split('_')
-                download_thing(directory, 'photo', photo_owner_id, photo_id, url, 'jpg')
-
-
-    print('Downloading groups\' avatars...' )
-    for group in profile_cache.groups:
-        if 'crop_photo' in group and 'photo' in group['crop_photo']:
-            download_photo(directory, group['crop_photo']['photo'])
-            continue
-
-        if 'deactivated' in group or ('has_photo' in group and not group['has_photo']):
-            continue
-
-        if 'photo_200' in group:
-            url = group['photo_200']
-        elif 'photo_100' in group:
-            url = group['photo_100']
-        elif 'photo_50' in group:
-            url = group['photo_50']
-        else:
-            continue
-        if 'photo_id' not in group:
-            download_thing(directory, 'avatar', -group['id'], None, url, 'jpg')
-        else:
-            download_thing(directory, 'photo', -group['id'], group['photo_id'], url, 'jpg')
+    profile_cache.download_avatars()
 
 def main():
     ssl._create_default_https_context = ssl._create_unverified_context

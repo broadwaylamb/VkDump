@@ -57,6 +57,12 @@ def download_media_attachment(directory, attachment, session: VkOfficialClientSe
         owner_id = sticker['product_id']
         object_id = sticker['sticker_id']
         extension = 'png'
+    elif attachment['type'] == 'wall':
+        if 'attachments' in attachment:
+            print(f'Downloading attachments for post {attachment["id"]}...')
+            for attachment in attachment['attachments']:
+                download_media_attachment(directory, attachment, session)
+        return
     else:
         return
     download_thing(directory, attachment['type'], owner_id, object_id, url, extension)
