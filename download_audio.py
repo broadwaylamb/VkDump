@@ -23,7 +23,7 @@ def download_mp3_from_m3u8(directory, owner_id, audio_id, m3u8_url, artist, titl
     audio.save()
 
 def download_audio(directory, audio):
-    directory = directory / 'audio' / f'audio{audio["owner_id"]}'
+    directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
     if (directory / f'audio{audio['owner_id']}_{audio['id']}.mp3').exists():
         print('Already downloaded, skipping')
@@ -105,20 +105,20 @@ def download_audio_list(directory, owner_id, session: VkOfficialClientSession):
     # Удаляем ненужные поля
     for audio in response:
         del audio['ads']
+        del audio['track_code']
 
     directory = Path(directory)
-    directory.mkdir(parents=True, exist_ok=True)
-    json_path = directory / f'audio{owner_id}.json'
-    json_path.write_text(json.dumps(response, indent=4, ensure_ascii=False))
+    audio_dir = directory / 'audio' / f'audio{owner_id}'
+    audio_dir.mkdir(parents=True, exist_ok=True)
+    json_path = audio_dir / f'audio{owner_id}.json'
+    json_path.write_text(json.dumps(response, indent='\t', ensure_ascii=False))
     print('Saved audio list to {}'.format(json_path))
-    mp3dir = directory / f'audio{owner_id}'
-    mp3dir.mkdir(exist_ok=True)
-    print(f'Downloading mp3s into directory {mp3dir}')
+    print(f'Downloading mp3s into directory {audio_dir}')
     for i, audio in enumerate(response):
         print(f'Downloading {i + 1} out of {len(response)}...')
-        download_audio(mp3dir, audio)
+        download_audio(audio_dir, audio)
 
-if __name__ == '__main__':
+def main():
     session = log_in_with_official_client()
     owner = input('Owner ID: ').strip()
     id = input('Audio ID (skip if you want to download all audios of the specified owner): ').strip()
@@ -126,3 +126,6 @@ if __name__ == '__main__':
         download_mp3('.', owner, id, session)
     else:
         download_audio_list('.', owner, session)
+
+if __name__ == '__main__':
+    main()
