@@ -8,9 +8,9 @@ from vk_api import VkTools, ApiHttpError, VkToolsException
 from auth import VkOfficialClientSession
 from auth import log_in_with_official_client
 from download_media import download_media_attachment
-from utils import PROFILE_FIELDS
-from likes import get_likes
 from profile_cache import ProfileCache
+from utils import PROFILE_FIELDS
+from utils import get_likes
 from vktools_with_profiles import VkToolsWithProfiles
 
 
