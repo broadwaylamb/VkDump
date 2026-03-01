@@ -23,7 +23,7 @@ def download_mp3_from_m3u8(directory, owner_id, audio_id, m3u8_url, artist, titl
     audio.save()
 
 def download_audio(directory, audio):
-    directory = Path(directory)
+    directory = Path(directory) / 'audio' / f'audio{audio["owner_id"]}'
     directory.mkdir(parents=True, exist_ok=True)
     if (directory / f'audio{audio['owner_id']}_{audio['id']}.mp3').exists():
         print('Already downloaded, skipping')
@@ -116,7 +116,7 @@ def download_audio_list(directory, owner_id, session: VkOfficialClientSession):
     print(f'Downloading mp3s into directory {audio_dir}')
     for i, audio in enumerate(response):
         print(f'Downloading {i + 1} out of {len(response)}...')
-        download_audio(audio_dir, audio)
+        download_audio(directory, audio)
 
 def main():
     session = log_in_with_official_client()
