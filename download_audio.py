@@ -97,22 +97,27 @@ class PatchedVkTools(VkTools):
             offset = response['offset']
 
 def download_audio_list(directory, owner_id, session: VkOfficialClientSession):
-    api = session.api()
-    t = PatchedVkTools(api)
-    print('Downloading audio list...')
-    response = t.get_all('audio.get', max_count=100, values={'owner_id': owner_id}, stop_fn=lambda items: len(items) == 0)['items']
-
-    # Удаляем ненужные поля
-    for audio in response:
-        del audio['ads']
-        del audio['track_code']
-
     directory = Path(directory)
     audio_dir = directory / 'audio' / f'audio{owner_id}'
     audio_dir.mkdir(parents=True, exist_ok=True)
     json_path = audio_dir / f'audio{owner_id}.json'
-    json_path.write_text(json.dumps(response, indent='\t', ensure_ascii=False))
-    print('Saved audio list to {}'.format(json_path))
+    if json_path.exists():
+        print(f'{json_path} exists, proceeding to downloading actual audio')
+        response = json.load(json_path.open())
+    else:
+        api = session.api()
+        t = PatchedVkTools(api)
+        print('Downloading audio list...')
+        response = t.get_all('audio.get', max_count=100, values={'owner_id': owner_id}, stop_fn=lambda items: len(items) == 0)['items']
+
+        # Удаляем ненужные поля
+        for audio in response:
+            del audio['ads']
+            del audio['track_code']
+
+        json_path.write_text(json.dumps(response, indent='\t', ensure_ascii=False))
+        print('Saved audio list to {}'.format(json_path))
+
     print(f'Downloading mp3s into directory {audio_dir}')
     for i, audio in enumerate(response):
         print(f'Downloading {i + 1} out of {len(response)}...')
