@@ -1,8 +1,20 @@
 import json
+import re
+import ssl
 from pathlib import Path
 
+from auth import log_in_with_official_client
 from download_thing import download_thing, download_photo
+from utils import PROFILE_FIELDS
 
+
+def _distinct(profiles, seen):
+    result = []
+    for profile in profiles:
+        if profile['id'] not in seen:
+            seen.add(profile['id'])
+            result.append(profile)
+    return result
 
 class ProfileCache:
     def __init__(self, directory):
@@ -19,6 +31,8 @@ class ProfileCache:
         if self.groups_path.exists():
             with self.groups_path.open() as f:
                 self.groups = json.load(f)
+        self.profiles = _distinct(self.profiles, self.seen_profiles)
+        self.groups = _distinct(self.groups, self.seen_groups)
 
     def save(self):
         self.profiles_path.write_text(json.dumps(self.profiles, indent='\t', ensure_ascii=False))
@@ -83,3 +97,33 @@ class ProfileCache:
                 download_thing(self.directory, 'avatar', -group['id'], None, url, 'jpg')
             else:
                 download_thing(self.directory, 'photo', -group['id'], group['photo_id'], url, 'jpg')
+
+def reload_profile(owner_id, profile_cache: ProfileCache, session):
+    owner_id = int(owner_id)
+    api = session.api()
+    if owner_id > 0:
+        result = api.method( 'users.get', {'user_ids': owner_id, 'fields': PROFILE_FIELDS })[0]
+        for (i, profile) in enumerate(profile_cache.profiles):
+            if profile['id'] == owner_id:
+                profile_cache.profiles[i] = result
+                return
+    else:
+        result = api.method('groups.getById', {'group_id': -owner_id, 'fields': PROFILE_FIELDS})[0]
+        for (i, group) in enumerate(profile_cache.groups):
+            if group['id'] == -owner_id:
+                profile_cache.groups[i] = result
+                return
+
+
+if __name__ == '__main__':
+    ssl._create_default_https_context = ssl._create_unverified_context
+    session = log_in_with_official_client()
+    profile_cache = ProfileCache(".")
+    for wall_f in Path("./wall").iterdir():
+        m = re.match("wall(-?\\d+).json", str(wall_f.name))
+        if m is not None:
+            owner_id = int(m.group(1))
+            print(f"Reloading profile {owner_id}...")
+            reload_profile(owner_id, profile_cache, session)
+
+    profile_cache.save()
