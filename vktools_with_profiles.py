@@ -61,7 +61,7 @@ vk_get_all_items = VkFunction(
 
 class VkToolsWithProfiles(VkTools):
     def get_all(self, method, max_count, values=None, key='items', limit=None,
-                stop_fn=None, negative_offset=False, profile_cache: ProfileCache = None):
+                stop_fn=None, negative_offset=False, profile_cache: ProfileCache | None = None):
         items = []
 
         values = values.copy() if values else {}
@@ -113,3 +113,55 @@ class VkToolsWithProfiles(VkTools):
             'profiles': response['profiles'],
             'groups': response['groups'],
         }
+
+    def get_all_slow(self, method, max_count, values=None, key='items', limit=None, stop_fn=None, negative_offset=False,
+                     profile_cache: ProfileCache | None = None):
+        values = values.copy() if values else {}
+        values['count'] = max_count
+
+        offset_mul = -1 if negative_offset else 1
+
+        offset = max_count if negative_offset else 0
+        count = None
+
+        items_count = 0
+
+        items = []
+
+        while count is None or offset < count:
+            values['offset'] = offset * offset_mul
+            response = self.vk.method(method, values)
+
+            new_count = response['count']
+
+            count_diff = (new_count - count) if count is not None else 0
+
+            if count_diff < 0:
+                offset += count_diff
+                count = new_count
+                continue
+
+            response_items = response[key]
+            new_items = response_items[count_diff:]
+            items_count += len(new_items)
+
+            if profile_cache is not None and 'profiles' in response:
+                profile_cache.cache_profiles(response['profiles'])
+            if profile_cache is not None and 'groups' in response:
+                profile_cache.cache_groups(response['groups'])
+
+            items.extend(new_items)
+
+            if len(response_items) < max_count - count_diff:
+                break
+
+            if limit and items_count >= limit:
+                break
+
+            if stop_fn and stop_fn(new_items):
+                break
+
+            offset += max_count
+            count = new_count
+
+        return { key: items }
