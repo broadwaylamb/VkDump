@@ -65,6 +65,7 @@ PROFILE_FIELDS = ('about,'
                   'main_album_id,'
                   'maiden_name,'
                   'member_status,'
+                  'members_count,'
                   'military,'
                   'movies,'
                   'music,'
@@ -90,3 +91,7 @@ PROFILE_FIELDS = ('about,'
                   'universities,'
                   'verified,'
                   'wall_default')
+
+
+def chunks(seq: list, size: int):
+    return (seq[pos:pos + size] for pos in range(0, len(seq), size))

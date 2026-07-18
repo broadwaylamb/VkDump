@@ -1,11 +1,40 @@
 import json
-import re
 import ssl
 from pathlib import Path
 
+from vk_api import VkApiError
+from vk_api.execute import VkFunction
+
 from auth import log_in_with_official_client
 from download_thing import download_thing, download_photo
-from utils import PROFILE_FIELDS
+from utils import PROFILE_FIELDS, chunks
+
+_vk_load_users = VkFunction(
+    args=('user_ids', 'fields'),
+    clean_args=('fields',),
+    code='''
+    var result = [], i = 0, user_ids = %(user_ids)s, fields = "%(fields)s";
+    while(i < user_ids.length) {
+        result = result + API.users.get({"user_ids": user_ids[i], "fields": fields});
+        i = i + 1;
+    };
+
+    return result;
+''')
+
+_vk_load_groups = VkFunction(
+    return_raw=True,
+    args=('group_ids', 'fields'),
+    clean_args=('fields',),
+    code='''
+    var result = [], i = 0, group_ids = %(group_ids)s, fields = "%(fields)s";
+    while(i < group_ids.length) {
+        result = result + API.groups.getById({"group_ids": group_ids[i], "fields": fields});
+        i = i + 1;
+    };
+
+    return result;
+''')
 
 
 def _distinct(profiles, seen):
@@ -58,6 +87,24 @@ class ProfileCache:
         for group in groups:
             self.cache_group(group)
 
+    @staticmethod
+    def __reload(name, chunk_size, actors, execute):
+        reloaded = []
+        for actor in chunks(actors, chunk_size):
+            print(f'Loading {name} {len(reloaded) + 1}-{len(reloaded) + len(actor)} out of {len(actors)}...')
+            ids = [a['id'] for a in actor]
+            response = execute(ids)
+            if 'execute_errors' in response:
+                raise VkApiError(response['execute_errors'])
+            reloaded += response['response']
+        return reloaded
+
+    def reload_profiles(self, api):
+        self.profiles = ProfileCache.__reload('profiles', 25, self.profiles, lambda ids: _vk_load_users(api, ids, PROFILE_FIELDS))
+
+    def reload_groups(self, api):
+        self.groups = ProfileCache.__reload('groups', 5, self.groups, lambda ids: _vk_load_groups(api, ids, PROFILE_FIELDS))
+
     def download_avatars(self):
         print('Downloading users\' avatars...')
         for profile in self.profiles:
@@ -98,32 +145,13 @@ class ProfileCache:
             else:
                 download_thing(self.directory, 'photo', -group['id'], group['photo_id'], url, 'jpg')
 
-def reload_profile(owner_id, profile_cache: ProfileCache, session):
-    owner_id = int(owner_id)
-    api = session.api()
-    if owner_id > 0:
-        result = api.method( 'users.get', {'user_ids': owner_id, 'fields': PROFILE_FIELDS })[0]
-        for (i, profile) in enumerate(profile_cache.profiles):
-            if profile['id'] == owner_id:
-                profile_cache.profiles[i] = result
-                return
-    else:
-        result = api.method('groups.getById', {'group_id': -owner_id, 'fields': PROFILE_FIELDS})[0]
-        for (i, group) in enumerate(profile_cache.groups):
-            if group['id'] == -owner_id:
-                profile_cache.groups[i] = result
-                return
-
+def main():
+    ssl._create_default_https_context = ssl._create_unverified_context
+    api = log_in_with_official_client().api()
+    profile_cache = ProfileCache(".")
+    profile_cache.reload_profiles(api)
+    profile_cache.reload_groups(api)
+    profile_cache.save()
 
 if __name__ == '__main__':
-    ssl._create_default_https_context = ssl._create_unverified_context
-    session = log_in_with_official_client()
-    profile_cache = ProfileCache(".")
-    for wall_f in Path("./wall").iterdir():
-        m = re.match("wall(-?\\d+).json", str(wall_f.name))
-        if m is not None:
-            owner_id = int(m.group(1))
-            print(f"Reloading profile {owner_id}...")
-            reload_profile(owner_id, profile_cache, session)
-
-    profile_cache.save()
+    main()

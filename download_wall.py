@@ -8,7 +8,7 @@ from vk_api import VkTools, ApiHttpError, VkToolsException
 from auth import VkOfficialClientSession
 from auth import log_in_with_official_client
 from download_media import download_media_attachment
-from profile_cache import ProfileCache, reload_profile
+from profile_cache import ProfileCache
 from utils import PROFILE_FIELDS
 from utils import get_likes
 from vktools_with_profiles import VkToolsWithProfiles
@@ -45,7 +45,6 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
     print(f'Downloading wall for {owner_id}...')
 
     profile_cache = ProfileCache(directory)
-    reload_profile(owner_id, profile_cache, session)
 
     if full_json_path.exists():
         print(f'{full_json_path} already exists, proceeding to download attachments...')
@@ -151,7 +150,7 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
                         },
                         profile_cache=profile_cache,
                     )['items']
-                except VkToolsException:
+                except Exception:
                     print(f'Could not download comments for post {post["id"]}...')
                     continue
             comments_json_path.write_text(json.dumps(response, indent='\t', ensure_ascii=False))
