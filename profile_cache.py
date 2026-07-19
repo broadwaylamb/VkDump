@@ -62,6 +62,8 @@ class ProfileCache:
                 self.groups = json.load(f)
         self.profiles = _distinct(self.profiles, self.seen_profiles)
         self.groups = _distinct(self.groups, self.seen_groups)
+        self.__profile_avatars_downloaded = len(self.profiles)
+        self.__group_avatars_downloaded = len(self.groups)
 
     def save(self):
         self.profiles_path.write_text(json.dumps(self.profiles, indent='\t', ensure_ascii=False))
@@ -101,13 +103,15 @@ class ProfileCache:
 
     def reload_profiles(self, api):
         self.profiles = ProfileCache.__reload('profiles', 25, self.profiles, lambda ids: _vk_load_users(api, ids, PROFILE_FIELDS))
+        self.__profile_avatars_downloaded = 0
 
     def reload_groups(self, api):
         self.groups = ProfileCache.__reload('groups', 5, self.groups, lambda ids: _vk_load_groups(api, ids, PROFILE_FIELDS))
+        self.__group_avatars_downloaded = 0
 
     def download_avatars(self):
-        print('Downloading users\' avatars...')
-        for profile in self.profiles:
+        print(f'Downloading avatars for {len(self.profiles) - self.__profile_avatars_downloaded} new profiles...')
+        for profile in self.profiles[self.__profile_avatars_downloaded:]:
             if 'crop_photo' in profile and 'photo' in profile['crop_photo']:
                 download_photo(self.directory, profile['crop_photo']['photo'])
                 continue
@@ -122,9 +126,10 @@ class ProfileCache:
                 else:
                     (photo_owner_id, photo_id) = profile['photo_id'].split('_')
                     download_thing(self.directory, 'photo', photo_owner_id, photo_id, url, 'jpg')
+        self.__profile_avatars_downloaded = len(self.profiles)
 
-        print('Downloading groups\' avatars...')
-        for group in self.groups:
+        print(f'Downloading avatars for {len(self.groups) - self.__group_avatars_downloaded} new groups...')
+        for group in self.groups[self.__group_avatars_downloaded:]:
             if 'crop_photo' in group and 'photo' in group['crop_photo']:
                 download_photo(self.directory, group['crop_photo']['photo'])
                 continue
@@ -144,13 +149,15 @@ class ProfileCache:
                 download_thing(self.directory, 'avatar', -group['id'], None, url, 'jpg')
             else:
                 download_thing(self.directory, 'photo', -group['id'], group['photo_id'], url, 'jpg')
+        self.__group_avatars_downloaded = len(self.groups)
 
 def main():
     ssl._create_default_https_context = ssl._create_unverified_context
     api = log_in_with_official_client().api()
     profile_cache = ProfileCache(".")
-    profile_cache.reload_profiles(api)
     profile_cache.reload_groups(api)
+    profile_cache.reload_profiles(api)
+    profile_cache.download_avatars()
     profile_cache.save()
 
 if __name__ == '__main__':

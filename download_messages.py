@@ -126,6 +126,7 @@ def download_messages(directory, session: VkOfficialClientSession):
     for conversation in conversations:
         download_chat(directory, conversation, tools, session, profile_cache)
 
+    profile_cache.save()
     profile_cache.download_avatars()
 
 

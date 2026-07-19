@@ -50,3 +50,4 @@ if __name__ == '__main__':
             download_friends(".", owner_id, session, profile_cache)
 
     profile_cache.save()
+    profile_cache.download_avatars()

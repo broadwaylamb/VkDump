@@ -1,4 +1,5 @@
 import json
+import re
 import ssl
 from pathlib import Path
 
@@ -16,7 +17,7 @@ def download_photo_album(directory, owner_id, album_id, session: VkOfficialClien
     directory = Path(directory)
     api = session.api()
     tools = VkToolsWithProfiles(api)
-    should_download_avatars = profile_cache is None
+    should_save_profile_cache = profile_cache is None
     album_dir = directory / 'album' / f'album{owner_id}'
     album_dir.mkdir(parents=True, exist_ok=True)
     full_json_path = album_dir / f'album{owner_id}_{album_id}.json'
@@ -98,7 +99,8 @@ def download_photo_album(directory, owner_id, album_id, session: VkOfficialClien
     for photo in response:
         download_photo(directory, photo)
 
-    if should_download_avatars:
+    if should_save_profile_cache:
+        profile_cache.save()
         profile_cache.download_avatars()
 
 def download_all_albums(directory, owner_id, session: VkOfficialClientSession, with_likes=False):
@@ -121,6 +123,7 @@ def download_all_albums(directory, owner_id, session: VkOfficialClientSession, w
             continue # Альбом "Фотографии на стене" пропускаем, лучше использовать download_wall.py для этого
         print(f'Downloading photos in album {album['title']}')
         download_photo_album(directory, album['owner_id'], album['id'], session, with_likes, profile_cache)
+    profile_cache.save()
     profile_cache.download_avatars()
 
 def main():

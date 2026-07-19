@@ -14,7 +14,7 @@ def download_topic(directory, owner_id, topic_id, session: VkOfficialClientSessi
     directory = Path(directory)
     board_dir = directory / 'boards' / f'board{owner_id}'
     board_dir.mkdir(parents=True, exist_ok=True)
-    should_download_avatars = profile_cache is None
+    should_save_profile_cache = profile_cache is None
     if profile_cache is not None:
         profile_cache = ProfileCache(directory)
     api = session.api()
@@ -45,7 +45,8 @@ def download_topic(directory, owner_id, topic_id, session: VkOfficialClientSessi
             for attachment in comment['attachments']:
                 download_media_attachment(directory, attachment, session, profile_cache)
 
-    if should_download_avatars:
+    if should_save_profile_cache:
+        profile_cache.save()
         profile_cache.download_avatars()
 
 
@@ -74,6 +75,8 @@ def download_topic_list(directory, owner_id, session: VkOfficialClientSession):
     profile_cache = ProfileCache(directory)
     for topic in topics:
         download_topic(directory, owner_id, topic['id'], session, profile_cache)
+
+    profile_cache.save()
     profile_cache.download_avatars()
 
 
