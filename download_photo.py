@@ -2,8 +2,9 @@ import json
 import re
 import ssl
 from pathlib import Path
+from traceback import print_exc
 
-from vk_api import VkTools
+from vk_api import VkTools, VkToolsException, VkApiError
 
 from auth import VkOfficialClientSession, log_in_with_official_client
 from utils import PROFILE_FIELDS
@@ -24,12 +25,21 @@ def download_photo_album(directory, owner_id, album_id, session: VkOfficialClien
     if profile_cache is None:
         profile_cache = ProfileCache(directory)
 
-    response = tools.get_all(
-        method='photos.get',
-        max_count=1000,
-        values={'owner_id': owner_id, 'album_id': album_id, 'extended': 1, 'photo_sizes': 1},
-        profile_cache=profile_cache
-    )['items']
+    try:
+        response = tools.get_all(
+            method='photos.get',
+            max_count=1000,
+            values={'owner_id': owner_id, 'album_id': album_id, 'extended': 1, 'photo_sizes': 1},
+            profile_cache=profile_cache
+        )['items']
+    except VkToolsException:
+        print_exc()
+        print("Could not download")
+        return
+    except VkApiError:
+        print_exc()
+        print("Could not download")
+        return
 
     for photo in response:
         if 'tags' in photo and photo['tags']['count'] > 0:
@@ -59,19 +69,24 @@ def download_photo_album(directory, owner_id, album_id, session: VkOfficialClien
 
         if 'comments' in photo and photo['comments']['count'] > 0:
             print(f'Downloading comments for photo {photo["owner_id"]}_{photo['id']}')
-            comments = tools.get_all(
-                method='photos.getComments',
-                max_count=100,
-                values={
-                    'owner_id': photo['owner_id'],
-                    'photo_id': photo['id'],
-                    'need_likes': True,
-                    'sort': 'asc',
-                    'extended': 1,
-                    'fields': PROFILE_FIELDS,
-                },
-                profile_cache=profile_cache,
-            )['items']
+            try:
+                comments = tools.get_all(
+                    method='photos.getComments',
+                    max_count=100,
+                    values={
+                        'owner_id': photo['owner_id'],
+                        'photo_id': photo['id'],
+                        'need_likes': True,
+                        'sort': 'asc',
+                        'extended': 1,
+                        'fields': PROFILE_FIELDS,
+                    },
+                    profile_cache=profile_cache,
+                )['items']
+            except VkToolsException:
+                comments = []
+            except VkApiError:
+                comments = []
 
             if with_likes:
                 for comment in comments:
