@@ -19,8 +19,8 @@ def download_thing(directory, attachment_type, owner_id, object_id, url, extensi
     try:
         urllib.request.urlretrieve(url, directory / filename)
     except:
-        print(f"Could not download")
         print_exc()
+        print(f"Could not download {filename}")
 
 
 def download_photo(directory, photo):
