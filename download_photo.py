@@ -58,7 +58,7 @@ def download_photo_album(directory, owner_id, album_id, session: VkOfficialClien
             photo['tags'] = []
 
         if 'comments' in photo and photo['comments']['count'] > 0:
-            print(f'Downloading comments for photo {photo["owner_id"]}_{album_id}')
+            print(f'Downloading comments for photo {photo["owner_id"]}_{photo['id']}')
             comments = tools.get_all(
                 method='photos.getComments',
                 max_count=100,
