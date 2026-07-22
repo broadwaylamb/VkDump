@@ -193,7 +193,7 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
                         download_media_attachment(directory, attachment, session, profile_cache)
 
         comments = []
-        if 'list' in post['comments']:
+        if 'comments' in post and 'list' in post['comments']:
             comments = post['comments']['list']
         elif 'activity' in post and 'comments' in post['activity']:
             comments = post['activity']['comments']
