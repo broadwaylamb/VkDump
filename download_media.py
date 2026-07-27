@@ -28,9 +28,10 @@ def download_media_attachment(directory, attachment, session: VkOfficialClientSe
     elif attachment['type'] == 'audio_playlist':
         playlist = attachment['audio_playlist']
         print(f'Downloading audio playlist "{playlist["title"]}"')
-        for audio in playlist['audios']:
-            print(f'Downloading audio attachment "{audio['artist']} - {audio['title']}"')
-            download_audio(directory, audio)
+        if 'audios' in playlist:
+            for audio in playlist['audios']:
+                print(f'Downloading audio attachment "{audio['artist']} - {audio['title']}"')
+                download_audio(directory, audio)
         return
     elif attachment['type'] == 'doc':
         document = attachment['doc']
