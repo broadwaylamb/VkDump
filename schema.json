@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VK Dump Index",
+  "type": "object",
+  "properties": {
+    "users": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "name": {
+            "type": "string"
+          },
+          "with_likes": {
+            "type": "boolean",
+            "default": false
+          },
+          "albums": {
+            "type": "boolean",
+            "default": false
+          },
+          "audios": {
+            "type": "boolean",
+            "default": false
+          },
+          "friends": {
+            "type": "boolean",
+            "default": false
+          },
+          "friends_of_friends": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "name": {
+            "type": "string"
+          },
+          "only_own_posts": {
+            "type": "boolean",
+            "default": false
+          },
+          "with_likes": {
+            "type": "boolean",
+            "default": false
+          },
+          "audios": {
+            "type": "boolean",
+            "default": false
+          },
+          "albums": {
+            "type": "boolean",
+            "default": false
+          },
+          "all_participants": {
+            "type": "boolean",
+            "default": false
+          },
+          "topics": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      }
+    }
+  }
+}

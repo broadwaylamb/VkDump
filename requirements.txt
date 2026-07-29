@@ -5,3 +5,4 @@ m3u8==6.0.0
 moviepy==2.1.2
 pycryptodome==3.21.0
 mutagen==1.47.0
+pyyaml==6.0.3

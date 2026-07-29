@@ -35,21 +35,24 @@ def download_friends(directory, user_id, session: VkOfficialClientSession, profi
     full_json_path.write_text(json.dumps(response, indent='\t', ensure_ascii=False))
     return response
 
+def download_all_friends(directory, user_id, session: VkOfficialClientSession, friends_of_friends):
+    print(f'Downloading friends of {user_id}...')
+    profile_cache = ProfileCache(directory)
+    friends = download_friends(directory, user_id, session, profile_cache)
+    if friends_of_friends:
+        for friend in friends:
+            print(f'Downloading friends of {friend['id']}...')
+            download_friends(directory, friend['id'], session, profile_cache)
+    profile_cache.save()
+    profile_cache.download_avatars()
+
 def main():
     ssl._create_default_https_context = ssl._create_unverified_context
     session = log_in_with_official_client()
-    profile_cache = ProfileCache(".")
     uid = input('User ID whose friends to dump: ').strip()
     fof = input('Also friends of friends? (type anything, empty string means no) ').strip() != ''
 
-    print(f'Downloading friends of {uid}...')
-    friends = download_friends('.', uid, session, profile_cache)
-    if fof:
-        for friend in friends:
-            print(f'Downloading friends of {friend['id']}...')
-            download_friends('.', friend['id'], session, profile_cache)
-    profile_cache.save()
-    profile_cache.download_avatars()
+    download_all_friends(".", uid, session, fof)
 
 
 if __name__ == '__main__':

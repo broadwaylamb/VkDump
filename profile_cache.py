@@ -37,11 +37,11 @@ _vk_load_groups = VkFunction(
 ''')
 
 
-def _distinct(profiles, seen):
+def _distinct(profiles, seen: dict):
     result = []
     for profile in profiles:
         if profile['id'] not in seen:
-            seen.add(profile['id'])
+            seen[profile['id']] = len(result)
             result.append(profile)
     return result
 
@@ -52,8 +52,8 @@ class ProfileCache:
         self.groups_path = self.directory / 'groups.json'
         self.profiles = []
         self.groups = []
-        self.seen_profiles = set()
-        self.seen_groups = set()
+        self.seen_profiles = {}
+        self.seen_groups = {}
         if self.profiles_path.exists():
             with self.profiles_path.open() as f:
                 self.profiles = json.load(f)
@@ -69,9 +69,21 @@ class ProfileCache:
         self.profiles_path.write_text(json.dumps(self.profiles, indent='\t', ensure_ascii=False))
         self.groups_path.write_text(json.dumps(self.groups, indent='\t', ensure_ascii=False))
 
+    def get_profile(self, id):
+        seen = self.seen_groups if id < 0 else self.seen_profiles
+        profiles = self.groups if id < 0 else self.profiles
+        id = abs(id)
+        if id not in seen:
+            return None
+        idx = seen[id]
+        return profiles[idx]
+
+    def get_group(self, id):
+        return self.get_profile(-abs(int(id)))
+
     def cache_profile(self, profile):
         if profile['id'] not in self.seen_profiles:
-            self.seen_profiles.add(profile['id'])
+            self.seen_profiles[profile['id']] = len(self.profiles)
             self.profiles.append(profile)
 
     def cache_profiles(self, profiles):
@@ -80,7 +92,7 @@ class ProfileCache:
 
     def cache_group(self, group):
         if group['id'] not in self.seen_groups:
-            self.seen_groups.add(group['id'])
+            self.seen_groups[group['id']] = len(self.groups)
             self.groups.append(group)
 
     def cache_groups(self, groups):
