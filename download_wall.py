@@ -91,7 +91,7 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
 
             posts_json_path.write_text(json.dumps(response, indent='\t', ensure_ascii=False))
             profile_cache.save()
-            print(f'Downloaded posts for {owner_id}.')
+            print(f'Downloaded {len(response['items'])} posts for {owner_id}.')
 
         if with_likes:
             if likes_json_path.exists():

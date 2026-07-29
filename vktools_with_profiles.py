@@ -54,7 +54,6 @@ vk_get_all_items = VkFunction(
         profiles: profiles,
         groups: groups,
         offset: offset,
-        more: calls != 99
     };
 ''')
 
@@ -96,7 +95,8 @@ class VkToolsWithProfiles(VkTools):
             if profile_cache is not None and 'groups' in response:
                 profile_cache.cache_groups(response['groups'])
 
-            if not response['more']:
+
+            if len(new_items) == 0:
                 break
 
             if limit and items_count >= limit:
