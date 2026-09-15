@@ -3,7 +3,7 @@ import ssl
 from pathlib import Path
 from traceback import print_exc
 
-from vk_api import ApiHttpError, VkTools
+from vk_api import ApiHttpError, VkTools, ApiError
 
 from auth import log_in_with_official_client, VkOfficialClientSession
 from profile_cache import ProfileCache
@@ -29,6 +29,9 @@ def download_friends(directory, user_id, session: VkOfficialClientSession, profi
     except ApiHttpError as e:
         print(f'Error getting friends for {user_id}: {e.response.json()}')
         print_exc()
+        return []
+    except ApiError as e:
+        print(f'Error getting friends for {user_id}: {e.error['error_msg']}')
         return []
 
     profile_cache.cache_profiles(response)
