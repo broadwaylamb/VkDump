@@ -38,16 +38,19 @@ def download_friends(directory, user_id, session: VkOfficialClientSession, profi
     full_json_path.write_text(json.dumps(response, indent='\t', ensure_ascii=False))
     return response
 
-def download_all_friends(directory, user_id, session: VkOfficialClientSession, friends_of_friends):
+def download_all_friends(directory, user_id, session: VkOfficialClientSession, friends_of_friends, profile_cache=None):
     print(f'Downloading friends of {user_id}...')
-    profile_cache = ProfileCache(directory)
+    profile_cache_passed = profile_cache is not None
+    if not profile_cache_passed:
+        profile_cache = ProfileCache(directory)
     friends = download_friends(directory, user_id, session, profile_cache)
     if friends_of_friends:
         for friend in friends:
             print(f'Downloading friends of {friend['id']}...')
             download_friends(directory, friend['id'], session, profile_cache)
-    profile_cache.save()
-    profile_cache.download_avatars()
+    if not profile_cache_passed:
+        profile_cache.save()
+        profile_cache.download_avatars()
 
 def main():
     ssl._create_default_https_context = ssl._create_unverified_context

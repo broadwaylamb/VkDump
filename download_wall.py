@@ -30,7 +30,7 @@ def get_reposts(tools: VkTools, owner_id, post_id, profile_cache: ProfileCache):
 
     return reposts['items']
 
-def download_wall(directory, owner_id, session: VkOfficialClientSession, with_likes = False):
+def download_wall(directory, owner_id, session: VkOfficialClientSession, with_likes, profile_cache=None):
     directory = Path(directory)
     wall_dir = directory / 'wall'
     wall_dir.mkdir(parents=True, exist_ok=True)
@@ -44,7 +44,8 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
     tools = VkToolsWithProfiles(api)
     print(f'Downloading wall for {owner_id}...')
 
-    profile_cache = ProfileCache(directory)
+    if profile_cache is None:
+        profile_cache = ProfileCache(directory)
 
     if full_json_path.exists():
         print(f'{full_json_path} already exists, proceeding to download attachments...')

@@ -55,9 +55,11 @@ class ProfileCache:
         self.seen_profiles = {}
         self.seen_groups = {}
         if self.profiles_path.exists():
+            print(f"Loading {self.profiles_path}...")
             with self.profiles_path.open() as f:
                 self.profiles = json.load(f)
         if self.groups_path.exists():
+            print(f"Loading {self.groups_path}...")
             with self.groups_path.open() as f:
                 self.groups = json.load(f)
         self.profiles = _distinct(self.profiles, self.seen_profiles)

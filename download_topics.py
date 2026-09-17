@@ -50,7 +50,7 @@ def download_topic(directory, owner_id, topic_id, session: VkOfficialClientSessi
         profile_cache.download_avatars()
 
 
-def download_topic_list(directory, owner_id, session: VkOfficialClientSession):
+def download_topic_list(directory, owner_id, session: VkOfficialClientSession, profile_cache=None):
     directory = Path(directory)
     board_dir = directory / 'boards' / f'board{owner_id}'
     board_dir.mkdir(parents=True, exist_ok=True)
@@ -72,12 +72,16 @@ def download_topic_list(directory, owner_id, session: VkOfficialClientSession):
         topics_json.write_text(json.dumps(topics, indent='\t', ensure_ascii=False))
         print('Finished downloading the list of topics.')
 
-    profile_cache = ProfileCache(directory)
+
+    profile_cache_passed = profile_cache is not None
+    if not profile_cache_passed:
+        profile_cache = ProfileCache(directory)
     for topic in topics:
         download_topic(directory, owner_id, topic['id'], session, profile_cache)
 
-    profile_cache.save()
-    profile_cache.download_avatars()
+    if not profile_cache_passed:
+        profile_cache.save()
+        profile_cache.download_avatars()
 
 
 def main():
