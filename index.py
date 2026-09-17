@@ -72,6 +72,7 @@ def compute_diff(index, downloaded):
         diff = dict()
         if user["id"] not in downloaded_users:
             diff["wall"] = True
+        update_diff(diff, user, downloaded_users, "only_own_posts")
         update_diff(diff, user, downloaded_users, "albums")
         update_diff(diff, user, downloaded_users, "audios")
         update_diff(diff, user, downloaded_users, "friends")
@@ -85,6 +86,7 @@ def compute_diff(index, downloaded):
         diff = dict()
         if group["id"] not in downloaded_groups:
             diff["wall"] = True
+        update_diff(diff, group, downloaded_groups, "only_own_posts")
         update_diff(diff, group, downloaded_groups, "albums")
         update_diff(diff, group, downloaded_groups, "audios")
         update_diff(diff, group, downloaded_groups, "topics")
@@ -153,7 +155,7 @@ def main():
     for user_id, diff in user_diff.items():
         with_likes = "with_likes" in diff
         if "wall" in diff:
-            download_wall(directory, user_id, session, with_likes, profile_cache)
+            download_wall(directory, user_id, session, with_likes, "only_own_posts" in diff and diff["only_own_posts"], profile_cache)
             update_downloaded_yaml(user_id, downloaded_user_dict, "wall", True)
         if "albums" in diff:
             download_all_albums(directory, user_id, session, with_likes, profile_cache)
@@ -170,8 +172,11 @@ def main():
     for group_id, diff in group_diff.items():
         with_likes = "with_likes" in diff
         if "wall" in diff:
-            download_wall(directory, -group_id, session, with_likes, profile_cache)
+            only_own_posts = "only_own_posts" in diff and diff["only_own_posts"]
+            download_wall(directory, -group_id, session, with_likes, only_own_posts, profile_cache)
             update_downloaded_yaml(-group_id, downloaded_group_dict, "wall", True)
+            if only_own_posts:
+                update_downloaded_yaml(-group_id, downloaded_group_dict, "only_own_posts", True)
         if "albums" in diff:
             download_all_albums(directory, -group_id, session, with_likes, profile_cache)
             update_downloaded_yaml(-group_id, downloaded_group_dict, "albums", True)

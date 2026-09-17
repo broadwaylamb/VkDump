@@ -30,7 +30,7 @@ def get_reposts(tools: VkTools, owner_id, post_id, profile_cache: ProfileCache):
 
     return reposts['items']
 
-def download_wall(directory, owner_id, session: VkOfficialClientSession, with_likes, profile_cache=None):
+def download_wall(directory, owner_id, session: VkOfficialClientSession, with_likes, only_own_posts=False, profile_cache=None):
     directory = Path(directory)
     wall_dir = directory / 'wall'
     wall_dir.mkdir(parents=True, exist_ok=True)
@@ -42,7 +42,7 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
     full_json_path = wall_dir / f'wall{owner_id}.json'
     api = session.api()
     tools = VkToolsWithProfiles(api)
-    print(f'Downloading wall for {owner_id}...')
+    print(f'Downloading wall for {owner_id}{' (only own posts)' if only_own_posts else ''}...')
 
     if profile_cache is None:
         profile_cache = ProfileCache(directory)
@@ -55,16 +55,19 @@ def download_wall(directory, owner_id, session: VkOfficialClientSession, with_li
             response = json.load(posts_json_path.open())
             print(f'{posts_json_path} already exists, proceeding to download {'likes' if with_likes else 'comments'}...')
         else:
+            params = {
+                'owner_id': owner_id,
+                'extended': 1,
+                'copy_history_depth': 10,
+                'fields': PROFILE_FIELDS,
+            }
+            if only_own_posts:
+                params['filter'] = 'owner'
             try:
                 response = tools.get_all(
                     method='wall.get',
                     max_count=10,
-                    values={
-                        'owner_id': owner_id,
-                        'extended': 1,
-                        'copy_history_depth': 10,
-                        'fields': PROFILE_FIELDS,
-                    },
+                    values=params,
                     profile_cache=profile_cache,
                 )
             except ApiHttpError as e:
