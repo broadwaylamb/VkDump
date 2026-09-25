@@ -79,9 +79,8 @@ def download_topic_list(directory, owner_id, session: VkOfficialClientSession, p
     for topic in topics:
         download_topic(directory, owner_id, topic['id'], session, profile_cache)
 
-    if not profile_cache_passed:
-        profile_cache.save()
-        profile_cache.download_avatars()
+    profile_cache.save()
+    profile_cache.download_avatars()
 
 
 def main():

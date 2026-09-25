@@ -49,7 +49,7 @@ def download_group_members(directory, group_id, friends_only, session: VkOfficia
     profile_cache.cache_profiles(response)
     json_path.write_text(json.dumps(response, indent='\t', ensure_ascii=False))
 
-    if not profile_cache_passed:
-        profile_cache.save()
-        profile_cache.download_avatars()
+    profile_cache.save()
+    profile_cache.download_avatars()
+
     return response

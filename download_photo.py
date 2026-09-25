@@ -141,9 +141,8 @@ def download_all_albums(directory, owner_id, session: VkOfficialClientSession, w
         print(f'Downloading photos in album {album['title']}')
         download_photo_album(directory, album['owner_id'], album['id'], session, with_likes, profile_cache)
 
-    if not profile_cache_passed:
-        profile_cache.save()
-        profile_cache.download_avatars()
+    profile_cache.save()
+    profile_cache.download_avatars()
 
 def main():
     ssl._create_default_https_context = ssl._create_unverified_context
