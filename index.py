@@ -168,6 +168,8 @@ def main():
             update_downloaded_yaml(user_id, downloaded_user_dict, "friends", True)
             if "friends_of_friends" in diff:
                 update_downloaded_yaml(user_id, downloaded_user_dict, "friends_of_friends", True)
+        if with_likes:
+            update_downloaded_yaml(user_id, downloaded_user_dict, "with_likes", True)
 
     for group_id, diff in group_diff.items():
         with_likes = "with_likes" in diff
@@ -195,6 +197,8 @@ def main():
                 # Возможно, «все» подписчики скрыты. Тогда скачиваем только друзей
                 download_group_members(directory, group_id, True, session, profile_cache)
             update_downloaded_yaml(-group_id, downloaded_group_dict, "members", diff["members"])
+        if with_likes:
+            update_downloaded_yaml(-group_id, downloaded_group_dict, "with_likes", True)
 
     profile_cache.save()
     profile_cache.download_avatars()
