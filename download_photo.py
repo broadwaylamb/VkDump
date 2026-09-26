@@ -126,11 +126,17 @@ def download_all_albums(directory, owner_id, session: VkOfficialClientSession, w
     if not profile_cache_passed:
         profile_cache = ProfileCache(directory)
     print(f"Downloading all albums for id{owner_id}")
-    response = tools.get_all(
-        method='photos.getAlbums',
-        max_count=1000,
-        values={'owner_id': owner_id, 'need_system': 1, 'need_covers': 1},
-    )['items']
+    try:
+        response = tools.get_all(
+            method='photos.getAlbums',
+            max_count=1000,
+            values={'owner_id': owner_id, 'need_system': 1, 'need_covers': 1},
+        )['items']
+    except VkToolsException:
+        print_exc()
+        print(f"Could not download albums for {owner_id}")
+        return
+
     album_dir = directory / 'album' / f'album{owner_id}'
     album_dir.mkdir(parents=True, exist_ok=True)
     json_path = album_dir / f'albums{owner_id}.json'
